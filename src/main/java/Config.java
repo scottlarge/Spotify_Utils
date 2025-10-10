@@ -1,0 +1,3 @@
+public class Config {
+    public static String ACCESS_TOKEN = "BQBZ0Y6tuc2ODDdzCgmH2-VxGE6P_o0vR-cXmfFjGdhOje_a4bvNRpxdIdzGiljMFe9emr4IUF-yFopATltV_9O6UTP2hX3Lk7LCQ7XsPiAUQ4YsJm0_WldeaE3uK5wxoAoA7NHWHq1x6qsfZSJIlBmur9c601VGQ-4cXiWb2r0JSmx9BrJmDdRUTe91OEIL9QhK_L8Cs-n-z1BYAOkqpBlRY-JyVV1mYsRFseLcdlK7AGyYEdqfg2pWHv6__9o3yosahsjwLLDu5kxuib0vi4iUXvtmaOWZ";
+}
