@@ -1,11 +1,10 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Scanner;
 
 import org.json.JSONArray;
@@ -14,11 +13,28 @@ import org.json.JSONObject;
 public class SpotifyPlaylistReader {
 
     // Spotify API Credentials (Replace with your actual credentials)
-    private static final String CLIENT_ID = "b8eab5ec083e4707a2fbb1cf6644a137";
-    private static final String CLIENT_SECRET = "f770a135be73408ca79f543b06e87ec5";
+    private static String CLIENT_ID = null;
+    private static String CLIENT_SECRET = null;
 
     // Spotify Redirect URI (Set in Spotify Developer Dashboard)
     private static final String REDIRECT_URI = "http://localhost:9000/";
+
+    private SpotifyPlaylistReader() {
+    }
+
+    public static void init() {
+        Properties appProps = new Properties();
+
+        try {
+            appProps.load((new SpotifyPlaylistReader()).getClass().getClassLoader().getResourceAsStream("spotify.properties"));
+            Object clientId = appProps.get("CLIENT_ID");
+            CLIENT_ID = (String) clientId;
+            Object clientSecret = appProps.get("CLIENT_SECRET");
+            CLIENT_SECRET = (String) clientSecret;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void main(String[] args) {
         Map<String, String> tracks;

@@ -16,6 +16,8 @@ public class CGREndlessPlaylistChecker {
         Map<String, Integer> tracks = new HashMap<>();
         BufferedReader reader = null;
 
+        SpotifyPlaylistReader.init();
+
         try {
             if (Config.ACCESS_TOKEN == null) {
                 String authorizationCode = SpotifyPlaylistReader.getAuthorizationCode();

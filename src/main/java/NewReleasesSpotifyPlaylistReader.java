@@ -18,6 +18,8 @@ public class NewReleasesSpotifyPlaylistReader {
 
     public static void main(String[] args) {
         try {
+            SpotifyPlaylistReader.init();
+
             if (ACCESS_TOKEN == null) {
                 String authorizationCode = SpotifyPlaylistReader.getAuthorizationCode();
                 ACCESS_TOKEN = SpotifyPlaylistReader.getAccessTokenFromCode(authorizationCode);
