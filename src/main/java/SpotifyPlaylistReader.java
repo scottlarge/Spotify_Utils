@@ -17,7 +17,7 @@ public class SpotifyPlaylistReader {
     private static String CLIENT_SECRET = null;
 
     // Spotify Redirect URI (Set in Spotify Developer Dashboard)
-    private static final String REDIRECT_URI = "http://localhost:9000/";
+    private static final String REDIRECT_URI = "https://www.madeupurlforthis.com/";
 
     private SpotifyPlaylistReader() {
     }

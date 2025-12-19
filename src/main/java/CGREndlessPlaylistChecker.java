@@ -37,6 +37,15 @@ public class CGREndlessPlaylistChecker {
                 System.out.println("Access token: " + Config.ACCESS_TOKEN);
             }
 
+//            System.out.println("Playlist Tracks");
+//            System.out.println("---------------");
+//
+//            for (String key : playlistTracks.keySet()) {
+//                System.out.println(key + " - " + playlistTracks.get(key));
+//            }
+//
+//            System.out.println("---------------");
+
             reader = new BufferedReader(new FileReader(new File("G:\\My Drive\\CGR Endless Playlist Played Tracks.txt")));
             String line;
 
@@ -83,7 +92,7 @@ public class CGREndlessPlaylistChecker {
                                 List<String> differences = new ArrayList<>(trackKeyArrList);
                                 differences.removeAll(plKeyArrList);
 
-                                if (trackKeyArr[0].equalsIgnoreCase(plKeyArr[0]) && differences.size() == 0) {
+                                if (trackKeyArr[0].equalsIgnoreCase(plKeyArr[0]) && differences.isEmpty()) {
                                     System.out.println(key + " = " + tracks.get(key) + " (" + playlistTracks.get(plKey) + ")");
 
                                     if (!dryRun) {
@@ -111,7 +120,7 @@ public class CGREndlessPlaylistChecker {
 
             System.out.println(MessageFormat.format("\n{0} track(s) removed that have been played 3 times or more\n", tracksRemoved));
 
-            playlistTracks = SpotifyPlaylistReader.fetchAllPlaylistTracks(PLAYLIST_ID);
+//            playlistTracks = SpotifyPlaylistReader.fetchAllPlaylistTracks(PLAYLIST_ID);
 
             if (playlistTracks.size() > maxPlaylistSize || dryRun || deletePlayedTwice) {
                 System.out.println("\nStill too many tracks so removing any tracks played twice\n");
@@ -173,7 +182,7 @@ public class CGREndlessPlaylistChecker {
                 System.out.println(MessageFormat.format("\n{0} track(s) removed that have been played twice\n", tracksRemoved));
             }
 
-            playlistTracks = SpotifyPlaylistReader.fetchAllPlaylistTracks(PLAYLIST_ID);
+//            playlistTracks = SpotifyPlaylistReader.fetchAllPlaylistTracks(PLAYLIST_ID);
             int playedOnce = 0;
 
             if (dryRun || deletePlayedOnce) {
