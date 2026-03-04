@@ -41,3 +41,4 @@ src/main/resources/spotify.properties
 src/main/scripts/node/node_modules
 src/main/scripts/node/table.wiki
 src/main/scripts/node/wipe204.wiki
+/src/main/scripts/node/screenshots
