@@ -32,7 +32,6 @@ if (args[args.length - 1].endsWith(".wiki")) {
 }
 
 const patterns = args.map(p => p.replaceAll("\\", "/"));
-
 const IMAGE_PATHS = fg.sync(patterns, { onlyFiles: true });
 
 if (IMAGE_PATHS.length === 0) {
