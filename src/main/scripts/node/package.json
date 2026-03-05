@@ -1,7 +1,6 @@
 {
   "dependencies": {
     "fast-glob": "^3.3.3",
-    "openai": "^6.25.0",
-    "puppeteer": "^24.38.0"
+    "openai": "^6.25.0"
   }
 }

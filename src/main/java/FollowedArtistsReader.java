@@ -1,10 +1,7 @@
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
@@ -36,39 +33,41 @@ public class FollowedArtistsReader {
                 artists = fetchFollowingArtists();
             }
 
-            int artistFetchedCount = 0;
-            String fromReleaseDate = "2025-07-30";
+            System.out.println(artists);
 
-            if (artists != null) {
-                int albumCount = 0;
-
-                for (String artist : artists.keySet()) {
-                    artistFetchedCount++;
-                    String artistId = artists.get(artist);
-                    artistId = artistId.replace("spotify:artist:", "");
-//                    System.out.println(artistFetchedCount + ". " + artist + " (" + artistId + ")");
-                    List<Album> albums = fetchArtistAlbums(artistId);
-
-                    for (Album album : albums) {
-                        if (!album.getAlbumType().equalsIgnoreCase("compilation") && album.getReleaseDate().compareTo(fromReleaseDate) >= 0) {
-                            System.out.println("\t" + (++albumCount) + ". " + artist + " - " + album.getName() + " [" + album.getSpotifyId() + "] [" + album.getAlbumType() + "] (" + album.getReleaseDate() + ")");
-
-                            List<String> trackIds = fetchAlbumTrackIDs(album.getId());
-                            album.setTrackIds(trackIds);
-
-                            boolean added = addToPlaylist(album);
-
-                            if (added) {
-                                System.out.println("Added");
-                            } else {
-                                System.out.println("Error adding " + album.getAlbumType() + " to playlist");
-                            }
-                        } else {
-                            System.out.println("SKIPPING \t" + (++albumCount) + ". " + artist + " - " + album.getName() + " [" + album.getSpotifyId() + "] [" + album.getAlbumType() + "] (" + album.getReleaseDate() + ")");
-                        }
-                    }
-                }
-            }
+//            int artistFetchedCount = 0;
+//            String fromReleaseDate = "2025-07-30";
+//
+//            if (artists != null) {
+//                int albumCount = 0;
+//
+//                for (String artist : artists.keySet()) {
+//                    artistFetchedCount++;
+//                    String artistId = artists.get(artist);
+//                    artistId = artistId.replace("spotify:artist:", "");
+////                    System.out.println(artistFetchedCount + ". " + artist + " (" + artistId + ")");
+//                    List<Album> albums = fetchArtistAlbums(artistId);
+//
+//                    for (Album album : albums) {
+//                        if (!album.getAlbumType().equalsIgnoreCase("compilation") && album.getReleaseDate().compareTo(fromReleaseDate) >= 0) {
+//                            System.out.println("\t" + (++albumCount) + ". " + artist + " - " + album.getName() + " [" + album.getSpotifyId() + "] [" + album.getAlbumType() + "] (" + album.getReleaseDate() + ")");
+//
+//                            List<String> trackIds = fetchAlbumTrackIDs(album.getId());
+//                            album.setTrackIds(trackIds);
+//
+//                            boolean added = addToPlaylist(album);
+//
+//                            if (added) {
+//                                System.out.println("Added");
+//                            } else {
+//                                System.out.println("Error adding " + album.getAlbumType() + " to playlist");
+//                            }
+//                        } else {
+//                            System.out.println("SKIPPING \t" + (++albumCount) + ". " + artist + " - " + album.getName() + " [" + album.getSpotifyId() + "] [" + album.getAlbumType() + "] (" + album.getReleaseDate() + ")");
+//                        }
+//                    }
+//                }
+//            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -150,6 +149,7 @@ public class FollowedArtistsReader {
     public static Map<String, String> fetchFollowingArtists() throws Exception {
         String apiUrl = "https://api.spotify.com/v1/me/following?type=artist&limit=50";
         Map<String, String> artists = new HashMap<>();
+        List<String> artistsList = new ArrayList<>();
 
         while (apiUrl != null) {
             // Fetch artists from the current page
@@ -162,10 +162,26 @@ public class FollowedArtistsReader {
             for (int i = 0; i < items.length(); i++) {
                 String artistName = items.getJSONObject(i).getString("name");
                 artists.put(artistName, items.getJSONObject(i).getString("uri"));
+                artistsList.add(artistName);
             }
 
             // Get the next page URL
             apiUrl = json.getJSONObject("artists").optString("next", null);
+        }
+
+
+        FileWriter fw = null;
+
+        try {
+            fw = new FileWriter("artistsFromSpotify.txt");
+
+            for (String artistName : artistsList) {
+                fw.append(artistName + "\n");
+            }
+        } catch (Exception e) {
+        } finally {
+            Objects.requireNonNull(fw).flush();
+            Objects.requireNonNull(fw).close();
         }
 
         return artists;
