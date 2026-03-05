@@ -14,6 +14,9 @@ CLI usage examples
 node spotify_screenshots_to_wikitext.mjs shot1.png shot2.png
 node spotify_screenshots_to_wikitext.mjs screenshots/*.png
 node spotify_screenshots_to_wikitext.mjs screenshots/*.png wipe205.wiki
+
+Windows examples:
+node spotify_screenshots_to_wikitext.mjs "C:\Users\you\Pictures\Screenshots\*.png" wipe205.wiki
 */
 
 process.stdout.setDefaultEncoding("utf8");
@@ -26,12 +29,13 @@ if (args.length === 0) {
 
 // detect optional output file
 let outputFile = null;
-
-if (args[args.length - 1].endsWith(".wiki")) {
+if (args[args.length - 1].toLowerCase().endsWith(".wiki")) {
   outputFile = args.pop();
 }
 
-const patterns = args.map(p => p.replaceAll("\\", "/"));
+// fast-glob expects POSIX-style patterns
+const patterns = args.map((p) => p.replaceAll("\\", "/"));
+
 const IMAGE_PATHS = fg.sync(patterns, { onlyFiles: true });
 
 if (IMAGE_PATHS.length === 0) {
@@ -40,14 +44,7 @@ if (IMAGE_PATHS.length === 0) {
 }
 
 // ensure correct numeric ordering
-IMAGE_PATHS.sort((a, b) =>
-  a.localeCompare(b, undefined, { numeric: true })
-);
-
-if (IMAGE_PATHS.length === 0) {
-  console.error("No images matched:", args.join(" "));
-  process.exit(1);
-}
+IMAGE_PATHS.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
 function toDataURL(file) {
   const ext = path.extname(file).replace(".", "").toLowerCase() || "png";
@@ -70,41 +67,37 @@ function escapeWiki(text) {
 }
 
 function renderWikitext(rows) {
-
   rows = [...rows].sort((a, b) => a.index - b.index);
 
+  // compute contiguous rowspan groups for "Added by"
   const groups = [];
   let i = 0;
-
   while (i < rows.length) {
     const start = i;
     const who = rows[i].added_by;
     i++;
-
     while (i < rows.length && rows[i].added_by === who) i++;
-
-    groups.push({
-      start,
-      span: i - start,
-      who
-    });
+    groups.push({ start, span: i - start, who });
   }
 
   const groupMap = new Map();
-  groups.forEach(g => groupMap.set(g.start, g));
+  groups.forEach((g) => groupMap.set(g.start, g));
 
   const out = [];
-
   out.push('{| class="wikitable"}');
   out.push("! # !! Artist !! Song !! Added by !! Notes");
 
   rows.forEach((row, r) => {
-
     out.push("|-");
 
     const idx = escapeWiki(row.index);
-    const artist = escapeWiki(row.artist);
-    const song = escapeWiki(row.song);
+
+    // IMPORTANT: use track_artist + track_title (not album)
+    const artist = escapeWiki(row.track_artist);
+    const song = escapeWiki(row.track_title);
+
+    // Notes is intentionally blank; if you want album in notes:
+    // const notes = escapeWiki(row.notes || row.album_title || "");
     const notes = escapeWiki(row.notes || "");
 
     const g = groupMap.get(r);
@@ -118,19 +111,17 @@ function renderWikitext(rows) {
   });
 
   out.push("|}");
-
   return out.join("\n");
 }
 
 async function main() {
-
-  const images = IMAGE_PATHS.map(file => ({
+  const images = IMAGE_PATHS.map((file) => ({
     type: "input_image",
-    image_url: toDataURL(file)
+    image_url: toDataURL(file),
+    detail: "high",
   }));
 
   const response = await client.responses.create({
-
     model: MODEL,
 
     input: [
@@ -140,22 +131,30 @@ async function main() {
           {
             type: "input_text",
             text: `
-Extract playlist rows from these Spotify screenshots.
+Extract playlist rows from these Spotify screenshots (Spotify playlist LIST VIEW).
 
-Rules:
-- index = track number
-- artist = artist exactly as displayed
-- song = track title exactly as displayed
-- added_by = exactly as displayed
-- notes = ""
-- do not invent rows
-- return all visible rows
-- sort by index
-`
+CRITICAL COLUMN MAPPING:
+- track_title: the SONG TITLE in the first/main column (top line of the cell).
+- track_artist: the ARTIST shown directly UNDER the title in the first/main column (smaller text).
+- album_title: the ALBUM column value (separate column to the right).
+- added_by: the "Added by" column value.
+- notes: always "".
+
+DO NOT swap track_title and track_artist.
+DO NOT put album_title into track_title or track_artist.
+
+Other rules:
+- index = the row number on the far left
+- keep punctuation/diacritics exactly as displayed
+- do not invent rows; only include what is visible
+- rows must be unique and sorted by index ascending
+
+Return JSON that matches the schema exactly.
+`,
           },
-          ...images
-        ]
-      }
+          ...images,
+        ],
+      },
     ],
 
     text: {
@@ -173,19 +172,22 @@ Rules:
                 additionalProperties: false,
                 properties: {
                   index: { type: "integer" },
-                  artist: { type: "string" },
-                  song: { type: "string" },
+
+                  track_title: { type: "string" },
+                  track_artist: { type: "string" },
+                  album_title: { type: "string" },
+
                   added_by: { type: "string" },
-                  notes: { type: "string" }
+                  notes: { type: "string" },
                 },
-                required: ["index", "artist", "song", "added_by", "notes"]
-              }
-            }
+                required: ["index", "track_title", "track_artist", "album_title", "added_by", "notes"],
+              },
+            },
           },
-          required: ["rows"]
-        }
-      }
-    }
+          required: ["rows"],
+        },
+      },
+    },
   });
 
   const payload = JSON.parse(response.output_text);
@@ -200,4 +202,7 @@ Rules:
   }
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
