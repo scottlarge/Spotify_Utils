@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import OpenAI from "openai";
 
-const client = new OpenAI({ apiKey: "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" });
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // cheaper + still very good for OCR
 const MODEL = "gpt-4.1-mini";
